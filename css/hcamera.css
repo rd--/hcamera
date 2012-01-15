@@ -1,0 +1,33 @@
+/* plain */
+
+body {
+ font-family: sans-serif;
+ font-size: 68%;
+}
+
+img {
+ border: none;
+}
+
+li {
+ list-style-type: none;
+ margin-left: 5px;
+ padding-left: 5px;
+}
+
+/* classes */
+
+div.node {
+ clear: both;
+ margin-bottom: 15px;
+ padding-bottom: 15px;
+}
+
+div.image {
+ float: left;
+ width: 350px;
+ text-align: right;
+}
+
+div.text {
+}

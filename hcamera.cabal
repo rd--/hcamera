@@ -1,0 +1,36 @@
+Name:              hcamera
+Version:           0.0
+Synopsis:          hcamera
+Description:       hcamera
+License:           GPL
+Category:          Graphics
+Copyright:         (c) Rohan Drape, 2008-2012
+Author:            Rohan Drape
+Maintainer:        rd@slavepianos.org
+Stability:         Experimental
+Homepage:          http://slavepianos.org/rd/?t=hcamera
+Tested-With:       GHC == 7.2.2
+Build-Type:        Simple
+Cabal-Version:     >= 1.8
+
+Data-files:        README
+
+Library
+  Build-Depends:   base==4.*,directory,exif,filepath,html-minimalist,old-locale,process,time,xml
+  GHC-Options:     -Wall -fwarn-tabs
+  Exposed-modules: Graphics.Camera.Exif
+                   Graphics.Camera.HTML
+                   Graphics.Camera.Rename
+
+Executable         hcamera
+  Main-Is:          hcamera.hs
+  GHC-Options:      -Wall -fwarn-tabs
+  Build-Depends:    base==4.*,directory,exif,filepath,hcamera,html-minimalist,old-locale,process,time,xml
+
+Source-Repository  head
+  Type:            darcs
+  Location:        http://slavepianos.org/rd/sw/hcamera
+
+-- Local Variables:
+-- truncate-lines:t
+-- End:
