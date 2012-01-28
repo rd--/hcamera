@@ -1,5 +1,6 @@
 module Graphics.Camera.Exif where
 
+import Control.Monad
 import Data.Maybe
 import Data.Time {- time -}
 import qualified Graphics.Exif as E {- exif -}
@@ -15,14 +16,14 @@ exif_date_fmt = "%Y:%m:%d %H:%M:%S"
 -- | Parse Exif time.
 --
 -- > prs_time "2008:02:23 12:10:46"
-prs_time :: String -> UTCTime
-prs_time = fromJust . parseTime defaultTimeLocale exif_date_fmt
+prs_time :: String -> Maybe UTCTime
+prs_time = parseTime defaultTimeLocale exif_date_fmt
 
 -- | Parse Exif date.
 --
 -- > prs_time_day "2008:02:23 12:10:46"
-prs_time_day :: String -> Day
-prs_time_day = fromJust . parseTime defaultTimeLocale exif_date_fmt
+prs_time_day :: String -> Maybe Day
+prs_time_day = parseTime defaultTimeLocale exif_date_fmt
 
 -- | Format @UTCTime@ in manner suitable for use as a filename.
 --
@@ -51,8 +52,11 @@ exif_datetime e =
       t:_ -> Just t
       _ -> Nothing
 
-exif_day :: Exif_Tags -> Day
-exif_day xs =
-    let d = exif_datetime xs
-        n = fromGregorian 1970 0 0
-    in maybe n (prs_time_day . snd) d
+exif_time :: Exif_Tags -> Maybe UTCTime
+exif_time = join . fmap (prs_time . snd) . exif_datetime
+
+exif_day :: Exif_Tags -> Maybe Day
+exif_day = join . fmap (prs_time_day . snd) . exif_datetime
+
+exif_day_def :: Exif_Tags -> Day
+exif_day_def = fromMaybe (fromGregorian 1970 0 0) . exif_day

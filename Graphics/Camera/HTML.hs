@@ -1,12 +1,13 @@
 module Graphics.Camera.HTML where
 
+import Data.Function
 import Data.List
 import Data.Time {- time -}
 import System.Directory {- directory -}
 import System.FilePath {- filepath -}
 import System.Locale {- old-locale -}
 import qualified Text.HTML.Light as H {- html-minimalist -}
-import qualified Text.HTML.Light.Common as H
+import qualified Text.HTML.Light.Composite as H
 import qualified Text.XML.Light as X {- xml -}
 
 import qualified Graphics.Camera.Exif as E
@@ -51,7 +52,7 @@ mk_exif xs =
     in H.ul [H.class' "exif"] (map f ys)
 
 up :: FilePath -> FilePath
-up f = if isAbsolute f then f else ".." </> ".." </> f
+up f = if isAbsolute f then f else "../../../" </> f
 
 mk_node :: Img -> X.Content
 mk_node (Img f _ xs) =
@@ -71,17 +72,17 @@ mk_page xs =
               (map mk_node xs)]
     in H.renderHTML5 e
 
-eq_by :: Eq b => (a -> b) -> a -> a -> Bool
-eq_by f p q = f p == f q
-
 day_year :: Day -> Int
 day_year = fromIntegral . (\(y,_,_) -> y) . toGregorian
 
-by_year :: [Img] -> [[Img]]
-by_year is = groupBy (eq_by (day_year . date)) is
-
 day_month :: Day -> Int
 day_month = fromIntegral . (\(_,d,_) -> d) . toGregorian
+
+eq_by :: Eq b => (a -> b) -> a -> a -> Bool
+eq_by f p q = f p == f q
+
+by_year :: [Img] -> [[Img]]
+by_year is = groupBy (eq_by (day_year . date)) is
 
 by_month :: [Img] -> [[Img]]
 by_month is = groupBy (eq_by (day_month . date)) is
@@ -93,23 +94,27 @@ write_page dir img =
       i:is -> do let ts = date i
                      y = day_year ts
                      m = day_month ts
-                     d = dir </> show y </> show m
+                     d = dir </> "ix" </> show y </> show m
                  createDirectoryIfMissing True d
                  writeFile (d </> "index.html") (mk_page (i:is))
 
+-- > collate "test" == [('e',1),('s',1),('t',2)]
+collate :: (Eq a,Ord a) => [a] -> [(a,Int)]
+collate = map (\x -> (head x,length x)) . group . sort
 
 mk_index :: [Img] -> String
 mk_index xs =
     let ds = map date xs
-        us = nub (map (\d -> (day_year d, day_month d)) ds)
-        hr (y, m) = show y </> show m </> "index.html"
-        ft (y, m) = formatTime
-                    defaultTimeLocale
-                    "%B, %Y"
-                    (fromGregorian (fromIntegral y) m 0)
-        ln d = H.li [] [H.a [H.href (hr d)] [H.cdata (ft d)]]
+        us = collate (map (\d -> (day_year d, day_month d)) ds)
+        hr ((y,m),_) = show y </> show m </> "index.html"
+        ft ((y,m),_) = formatTime
+                       defaultTimeLocale
+                       "%B, %Y"
+                       (fromGregorian (fromIntegral y) m 0)
+        nm (_,n) = " (" ++ show n ++ ")"
+        ln d = H.li [] [H.a [H.href (hr d)] [H.cdata (ft d ++ nm d)]]
         e = H.html std_html_attr [hd, bd]
-        hd = H.head [] (std_meta "hcamera" "css/hcamera.css")
+        hd = H.head [] (std_meta "hcamera" "../css/hcamera.css")
         bd = H.body
              [H.class' "hcamera"]
              [H.div
@@ -118,15 +123,15 @@ mk_index xs =
     in H.renderXHTML H.xhtml_1_0_strict e
 
 write_index :: FilePath -> [Img] -> IO ()
-write_index dir xs = writeFile (dir </> "index.html") (mk_index xs)
+write_index dir xs = writeFile (dir </> "ix/index.html") (mk_index xs)
 
 gen_html :: FilePath -> [FilePath] -> IO ()
 gen_html dir f = do
   x <- mapM E.read_all_tags f
-  let d = map E.exif_day x
-      is = zipWith3 Img f d x
+  let d = map E.exif_day_def x
+      is = sortBy (compare `on` date) (zipWith3 Img f d x)
       ys = by_year is
       ms = concatMap by_month ys
-  mapM_ print is
+  print (show ("gen_html",dir,length f,length is,length ys,map length ms))
   write_index dir is
   mapM_ (write_page dir) ms

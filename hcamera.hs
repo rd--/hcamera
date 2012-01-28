@@ -27,7 +27,9 @@ main :: IO ()
 main = do
   a <- getArgs
   case a of
-    [d] -> do rename_dir hcamera_ext d
-              resize_dir hcamera_ext d
-              gen_html_dir hcamera_ext d
-    _ -> error "hcamera"
+    [c,d] -> case c of
+               "rename" -> rename_dir hcamera_ext d
+               "resize" -> resize_dir hcamera_ext d
+               "gen-html" -> gen_html_dir hcamera_ext d
+               _ -> error (show ("hcamera: unknown cmd",c,d))
+    _ -> error "hcamera cmd dir"
