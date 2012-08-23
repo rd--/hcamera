@@ -94,7 +94,7 @@ write_page dir img =
       i:is -> do let ts = date i
                      y = day_year ts
                      m = day_month ts
-                     d = dir </> "ix" </> show y </> show m
+                     d = dir </> "html" </> show y </> show m
                  createDirectoryIfMissing True d
                  writeFile (d </> "index.html") (mk_page (i:is))
 
@@ -123,7 +123,7 @@ mk_index xs =
     in H.renderXHTML H.xhtml_1_0_strict e
 
 write_index :: FilePath -> [Img] -> IO ()
-write_index dir xs = writeFile (dir </> "ix/index.html") (mk_index xs)
+write_index dir xs = writeFile (dir </> "html/index.html") (mk_index xs)
 
 gen_html :: FilePath -> [FilePath] -> IO ()
 gen_html dir f = do

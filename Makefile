@@ -1,10 +1,10 @@
-D=$(HOME)
+prefix=$(HOME)/opt
 B=hcamera
 
 build-ghc:
 	ghc -Wall -fwarn-tabs -O2 --make $(B).hs
 	strip -s $(B)
-	cp $(B) $(D)/bin
+	cp $(B) $(prefix)/bin
 
 clean:
 	find . -name '*.hi' | xargs rm -f

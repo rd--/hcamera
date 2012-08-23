@@ -18,7 +18,7 @@ resize_dir :: [String] -> FilePath -> IO ()
 resize_dir e d = dir_subset e d >>= mapM_ (resize (Right 200))
 
 gen_html_dir :: [String] -> FilePath -> IO ()
-gen_html_dir e d = dir_subset e d >>= gen_html d
+gen_html_dir e d = dir_subset e d >>= gen_html "."
 
 hcamera_ext :: [String]
 hcamera_ext = [".jpg",".jpeg"]
