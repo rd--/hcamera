@@ -8,7 +8,7 @@ Copyright:         (c) Rohan Drape, 2008-2013
 Author:            Rohan Drape
 Maintainer:        rd@slavepianos.org
 Stability:         Experimental
-Homepage:          http://slavepianos.org/rd/?t=hcamera
+Homepage:          http://rd.slavepianos.org/?t=hcamera
 Tested-With:       GHC == 7.6.1
 Build-Type:        Simple
 Cabal-Version:     >= 1.8
@@ -45,7 +45,7 @@ Executable         hcamera
 
 Source-Repository  head
   Type:            darcs
-  Location:        http://slavepianos.org/rd/sw/hcamera
+  Location:        http://rd.slavepianos.org/sw/hcamera
 
 -- Local Variables:
 -- truncate-lines:t
