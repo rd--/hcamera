@@ -1,6 +1,6 @@
 module Graphics.Camera.Resize where
 
-import Control.Monad
+import Control.Monad {- base -}
 import System.Cmd {- process -}
 import System.Directory {- directory -}
 import System.FilePath {- filepath -}
@@ -33,4 +33,5 @@ resize dm f = do
   let ofn = revised_name f
       (p,a) = resize_cmd dm f ofn
   e <- doesFileExist ofn
+  print (if e then ("-",ofn) else ("+",ofn))
   when (not e) (mk_resize_dir f >> rawSystem p a >> return ())

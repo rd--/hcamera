@@ -1,8 +1,7 @@
 module Graphics.Camera.Rename where
 
-import Control.Monad
 import Data.Time {- time -}
-import qualified Graphics.Camera.Exif as E
+import qualified Graphics.Camera.Exif as E {- exif -}
 import System.Directory {- directory -}
 import System.FilePath {- filepath -}
 
@@ -20,5 +19,7 @@ rename f = do
   e <- E.read_all_tags f
   case E.exif_time e of
     Just t -> let r = mk_name f t
-              in when (f /= r) (renameFile f r)
-    Nothing -> print (f,e)
+              in if (f /= r)
+                 then print ("+",f,r) >> renameFile f r
+                 else print ("-",f)
+    Nothing -> print ("no-exif",f,e)

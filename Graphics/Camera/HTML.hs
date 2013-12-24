@@ -1,13 +1,13 @@
 module Graphics.Camera.HTML where
 
-import Data.Function
-import Data.List
+import Data.Function {- base -}
+import Data.List {- base -}
 import Data.Time {- time -}
 import System.Directory {- directory -}
 import System.FilePath {- filepath -}
 import System.Locale {- old-locale -}
 import qualified Text.HTML.Light as H {- html-minimalist -}
-import qualified Text.HTML.Light.Composite as H
+import qualified Text.HTML.Light.Composite as H {- html-minimalist -}
 import qualified Text.XML.Light as X {- xml -}
 
 import qualified Graphics.Camera.Exif as E
@@ -127,6 +127,7 @@ write_index dir xs = writeFile (dir </> "html/index.html") (mk_index xs)
 
 gen_html :: FilePath -> [FilePath] -> IO ()
 gen_html dir f = do
+  print ("reading tags",dir,length f)
   x <- mapM E.read_all_tags f
   let d = map E.exif_day_def x
       is = sortBy (compare `on` date) (zipWith3 Img f d x)

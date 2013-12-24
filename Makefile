@@ -1,4 +1,4 @@
-prefix=$(HOME)/opt
+prefix=$(HOME)/.cabal/
 B=hcamera
 
 build-ghc:
