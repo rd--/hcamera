@@ -11,3 +11,9 @@ clean:
 	find . -name '*.o' | xargs rm -f
 	rm -f $(B)
 	rm -f dist
+
+push-sp:
+	darcs push -a rd@slavepianos.org:sw/hcamera
+
+pull-sp:
+	darcs pull -a http://rd.slavepianos.org/sw/hcamera
