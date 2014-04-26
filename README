@@ -21,4 +21,8 @@ html   indices (generated)
 - `hcamera gen-html jpeg` will generate an index at `html/index.html`
    with sub-indices for each calendar month having images at `jpeg`.
 
-rd, 2008-2013
+Indirectly requires libexif:
+
+    sudo apt-get install libexif-dev
+
+rd, 2008-2014
