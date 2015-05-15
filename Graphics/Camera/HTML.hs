@@ -5,7 +5,6 @@ import Data.List {- base -}
 import Data.Time {- time -}
 import System.Directory {- directory -}
 import System.FilePath {- filepath -}
-import System.Locale {- old-locale -}
 import qualified Text.HTML.Light as H {- html-minimalist -}
 import qualified Text.HTML.Light.Composite as H {- html-minimalist -}
 import qualified Text.XML.Light as X {- xml -}

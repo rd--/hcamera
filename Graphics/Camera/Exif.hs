@@ -4,7 +4,6 @@ import Control.Monad
 import Data.Maybe
 import Data.Time {- time -}
 import qualified Graphics.Exif as E {- exif -}
-import System.Locale {- old-locale -}
 
 type Exif_Tag = (String,String)
 type Exif_Tags = [Exif_Tag]
@@ -17,13 +16,13 @@ exif_date_fmt = "%Y:%m:%d %H:%M:%S"
 --
 -- > prs_time "2008:02:23 12:10:46"
 prs_time :: String -> Maybe UTCTime
-prs_time = parseTime defaultTimeLocale exif_date_fmt
+prs_time = parseTimeM True defaultTimeLocale exif_date_fmt
 
 -- | Parse Exif date.
 --
 -- > prs_time_day "2008:02:23 12:10:46"
 prs_time_day :: String -> Maybe Day
-prs_time_day = parseTime defaultTimeLocale exif_date_fmt
+prs_time_day = parseTimeM True defaultTimeLocale exif_date_fmt
 
 -- | Format @UTCTime@ in manner suitable for use as a filename.
 --
