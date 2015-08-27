@@ -1,5 +1,6 @@
 module Graphics.Camera.Rename where
 
+import Data.Char {- base -}
 import Data.Time {- time -}
 import qualified Graphics.Camera.Exif as E {- exif -}
 import System.Directory {- directory -}
@@ -11,7 +12,7 @@ mk_name :: FilePath -> UTCTime -> FilePath
 mk_name fn t =
     let d = takeDirectory fn
         x = takeExtension fn
-    in  d </> E.fmt_time t <.> x
+    in  d </> E.fmt_time t <.> map toLower x
 
 -- | If file has exif @datetime@ data rename file.
 rename :: FilePath -> IO ()
