@@ -25,4 +25,4 @@ Indirectly requires libexif:
 
     sudo apt-get install libexif-dev
 
-rd, 2008-2014
+rd, 2008-2015

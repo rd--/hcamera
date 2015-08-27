@@ -1,7 +1,7 @@
 import Graphics.Camera.HTML
 import Graphics.Camera.Rename
 import Graphics.Camera.Resize
-import System.Environment
+import System.Environment {- base -}
 import System.Directory {- directory -}
 import System.FilePath {- filepath -}
 
@@ -21,7 +21,7 @@ gen_html_dir :: [String] -> FilePath -> IO ()
 gen_html_dir e d = dir_subset e d >>= gen_html "."
 
 hcamera_ext :: [String]
-hcamera_ext = [".jpg",".jpeg"]
+hcamera_ext = [".jpg",".jpeg",".JPG"]
 
 main :: IO ()
 main = do
