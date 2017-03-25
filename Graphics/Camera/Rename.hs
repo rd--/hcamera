@@ -1,26 +1,27 @@
 module Graphics.Camera.Rename where
 
 import Data.Char {- base -}
-import Data.Time {- time -}
-import qualified Graphics.Camera.Exif as E {- exif -}
-import System.Directory {- directory -}
+import qualified Data.Time as T {- time -}
+import qualified System.Directory as D {- directory -}
 import System.FilePath {- filepath -}
 
--- > let t = E.prs_time "2008:02:23 12:10:46"
+import qualified Graphics.Camera.Exif as E {- exif -}
+
+-- > let t = E.exif_parse_time "2008:02:23 12:10:46"
 -- > in fmap (mk_name "x/y.jpg") t == Just "x/2008-02-23-12-10-46.jpg"
-mk_name :: FilePath -> UTCTime -> FilePath
+mk_name :: FilePath -> T.UTCTime -> FilePath
 mk_name fn t =
     let d = takeDirectory fn
         x = takeExtension fn
-    in  d </> E.fmt_time t <.> map toLower x
+    in  d </> E.exif_format_time t <.> map toLower x
 
 -- | If file has exif @datetime@ data rename file.
 rename :: FilePath -> IO ()
 rename f = do
-  e <- E.read_all_tags f
+  e <- E.exif_read_all_tags f
   case E.exif_time e of
     Just t -> let r = mk_name f t
               in if (f /= r)
-                 then print ("+",f,r) >> renameFile f r
+                 then print ("+",f,r) >> D.renameFile f r
                  else print ("-",f)
     Nothing -> print ("no-exif",f,e)

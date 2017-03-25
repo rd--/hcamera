@@ -1,9 +1,9 @@
 module Graphics.Camera.Resize where
 
 import Control.Monad {- base -}
-import System.Cmd {- process -}
 import System.Directory {- directory -}
 import System.FilePath {- filepath -}
+import System.Process {- process -}
 
 type Command = (String,[String])
 
