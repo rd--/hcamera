@@ -22,6 +22,7 @@ Library
                    filepath,
                    html-minus == 0.16.*,
                    process,
+                   split,
                    time,
                    xml
   GHC-Options:     -Wall -fwarn-tabs

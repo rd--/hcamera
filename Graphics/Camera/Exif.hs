@@ -3,6 +3,9 @@ module Graphics.Camera.Exif where
 
 import Control.Monad {- base -}
 import Data.Maybe {- base -}
+import Data.List.Split {- split -}
+import System.Directory {- directory -}
+import System.FilePath {- filepath -}
 import qualified Data.Time as T {- time -}
 
 import qualified Graphics.Exif as E {- exif -}
@@ -19,12 +22,6 @@ exif_date_fmt = "%Y:%m:%d %H:%M:%S"
 exif_parse_time :: String -> Maybe T.UTCTime
 exif_parse_time = T.parseTimeM True T.defaultTimeLocale exif_date_fmt
 
--- | Parse Exif date.
---
--- > exif_parse_time_day "2008:02:23 12:10:46"
-exif_parse_time_day :: String -> Maybe T.Day
-exif_parse_time_day = T.parseTimeM True T.defaultTimeLocale exif_date_fmt
-
 -- | Format @UTCTime@ in manner suitable for use as a filename.
 --
 -- > fmap exif_format_time (exif_parse_time "2008:02:23 12:10:46") == Just "2008-02-23-12-10-46"
@@ -40,38 +37,66 @@ type Exif_Value = String
 -- | (key,value) pair.
 type Exif_Tag = (Exif_Key,Exif_Value)
 
--- | Read '[Exif_Tag]' from file.
-exif_read_all_tags :: FilePath -> IO [Exif_Tag]
-exif_read_all_tags f = do
-  x <- E.fromFile f
-  E.allTags x
-
 exif_filter :: [Exif_Tag] -> [Exif_Key] -> [Exif_Tag]
 exif_filter e t = filter (flip elem t . fst) e
 
+-- | Time tags, in sequence of preferred form.
 exif_datetime_seq :: [Exif_Tag] -> [Exif_Tag]
 exif_datetime_seq e =
     exif_filter e ["DateTime"
                   ,"DateTimeOriginal"
-                  ,"DateTimeDigitized"]
+                  ,"DateTimeDigitized"
+                  ,"CreateDate" -- exiftool, MP4
+                  ]
 
 exif_datetime :: [Exif_Tag] -> Maybe Exif_Tag
 exif_datetime e =
     case exif_datetime_seq e of
-      t:_ -> Just t
+      t0:_ -> Just t0
       _ -> Nothing
 
 exif_time :: [Exif_Tag] -> Maybe T.UTCTime
 exif_time = join . fmap (exif_parse_time . snd) . exif_datetime
 
 exif_time_def :: [Exif_Tag] -> T.UTCTime
-exif_time_def = fromMaybe (T.UTCTime (T.fromGregorian 1970 0 0) 0) . exif_time
-
-exif_day :: [Exif_Tag] -> Maybe T.Day
-exif_day = join . fmap (exif_parse_time_day . snd) . exif_datetime
+exif_time_def =
+    let t = T.UTCTime (T.fromGregorian 1970 0 0) 0
+    in fromMaybe t . exif_time
 
 exif_day_def :: [Exif_Tag] -> T.Day
-exif_day_def = fromMaybe (T.fromGregorian 1970 0 0) . exif_day
+exif_day_def = T.utctDay . exif_time_def
+
+-- * libexif
+
+-- | Read 'Exif_Tag' set from image file using libexif.
+libexif_read_all_tags :: FilePath -> IO [Exif_Tag]
+libexif_read_all_tags fb = do
+  x <- E.fromFile fb
+  E.allTags x
+
+-- * exiftool
+
+-- | Meta-data entries are "key: value" strings.
+meta_parse_entry :: String -> Exif_Tag
+meta_parse_entry s =
+    case splitOn ": " s of
+      [k,v] -> (k,v)
+      _ -> error "meta_parse_entry"
+
+-- | Read 'Exif_Tag' set from meta-data file written by /exiftool/.
+meta_read_all_tags :: FilePath -> IO [Exif_Tag]
+meta_read_all_tags fn = do
+  l <- fmap lines (readFile fn)
+  return (map meta_parse_entry l)
+
+-- * IO
+
+-- | Prefer meta data in file, if it exists.
+exif_read_all_tags :: FilePath -> IO [Exif_Tag]
+exif_read_all_tags fn = do
+  let meta_fn = dropExtension fn <.> "meta"
+  meta_x <- doesFileExist meta_fn
+  if meta_x then meta_read_all_tags meta_fn else libexif_read_all_tags fn
 
 -- * TAGS
 

@@ -13,6 +13,41 @@ import qualified Text.HTML.Minus as H {- html-minimalist -}
 import qualified Graphics.Camera.Exif as E
 import qualified Graphics.Camera.Resize as R
 
+-- * Util/Prelude
+
+-- > collate "test" == [('e',1),('s',1),('t',2)]
+collate :: Ord a => [a] -> [(a,Int)]
+collate = map (\x -> (head x,length x)) . group . sort
+
+eq_by :: Eq b => (a -> b) -> a -> a -> Bool
+eq_by f p q = f p == f q
+
+-- * Util/Time
+
+day_year :: T.Day -> Int
+day_year = fromIntegral . (\(y,_,_) -> y) . T.toGregorian
+
+day_month :: T.Day -> Int
+day_month = fromIntegral . (\(_,d,_) -> d) . T.toGregorian
+
+-- * Img
+
+data Img = Img {file_name :: FilePath
+               ,time :: T.UTCTime
+               ,exif_data :: [E.Exif_Tag]}
+           deriving (Show)
+
+date :: Img -> T.Day
+date = T.utctDay . time
+
+by_year :: [Img] -> [[Img]]
+by_year is = groupBy (eq_by (day_year . date)) is
+
+by_month :: [Img] -> [[Img]]
+by_month is = groupBy (eq_by (day_month . date)) is
+
+-- * HTML
+
 std_html_attr :: [X.Attr]
 std_html_attr = [H.lang "en" ]
 
@@ -22,12 +57,6 @@ std_meta d s =
     ,H.meta_description d
     ,H.meta_author "hcamera"
     ,H.link_css "all" s]
-
-data Img = Img {file_name :: FilePath
-               ,date :: T.Day
-               ,time :: T.UTCTime
-               ,exif_data :: [E.Exif_Tag]}
-           deriving (Show)
 
 exif_of_interest :: [E.Exif_Key]
 exif_of_interest =
@@ -42,9 +71,19 @@ exif_of_interest =
     ,"MeteringMode"
     ]
 
+mp4_of_interest :: [E.Exif_Key]
+mp4_of_interest =
+    ["CreateDate"
+    ,"Duration"
+    ,"ImageSize"
+    ,"VideoFrameRate"
+    ,"Rotation"
+    ,"MIMEType"]
+
 mk_exif :: [E.Exif_Tag] -> X.Content
 mk_exif xs =
-    let ys = filter (\(k,_) -> k `elem` exif_of_interest) xs
+    let oi = exif_of_interest ++ mp4_of_interest
+        ys = filter (\(k,_) -> k `elem` oi) xs
         f (k,v) = H.li [] [H.cdata k, H.cdata ": ", H.cdata v]
     in H.ul [H.class' "exif"] (map f ys)
 
@@ -52,7 +91,7 @@ up :: FilePath -> FilePath
 up f = if isAbsolute f then f else "../../../" </> f
 
 mk_node :: Img -> X.Content
-mk_node (Img f _ _ xs) =
+mk_node (Img f _ xs) =
     H.div
          [H.class' "node"]
          [H.div [H.class' "image"] [H.a [H.href (up f)] [H.img [H.src (up (R.revised_name f))]]]
@@ -69,21 +108,6 @@ mk_page xs =
               (map mk_node xs)]
     in H.renderHTML5 e
 
-day_year :: T.Day -> Int
-day_year = fromIntegral . (\(y,_,_) -> y) . T.toGregorian
-
-day_month :: T.Day -> Int
-day_month = fromIntegral . (\(_,d,_) -> d) . T.toGregorian
-
-eq_by :: Eq b => (a -> b) -> a -> a -> Bool
-eq_by f p q = f p == f q
-
-by_year :: [Img] -> [[Img]]
-by_year is = groupBy (eq_by (day_year . date)) is
-
-by_month :: [Img] -> [[Img]]
-by_month is = groupBy (eq_by (day_month . date)) is
-
 write_page :: FilePath -> [Img] -> IO ()
 write_page dir img =
     case img of
@@ -94,10 +118,6 @@ write_page dir img =
                      d = dir </> "html" </> show y </> show m
                  createDirectoryIfMissing True d
                  writeFile (d </> "index.html") (mk_page (i:is))
-
--- > collate "test" == [('e',1),('s',1),('t',2)]
-collate :: Ord a => [a] -> [(a,Int)]
-collate = map (\x -> (head x,length x)) . group . sort
 
 mk_index :: [Img] -> String
 mk_index xs =
@@ -126,9 +146,8 @@ gen_html :: FilePath -> [FilePath] -> IO ()
 gen_html dir f = do
   print ("reading tags",dir,length f)
   x <- mapM E.exif_read_all_tags f
-  let d = map E.exif_day_def x
-      t = map E.exif_time_def x
-      is = sortBy (compare `on` time) (zipWith4 Img f d t x)
+  let t = map E.exif_time_def x
+      is = sortBy (compare `on` time) (zipWith3 Img f t x)
       ys = by_year is
       ms = concatMap by_month ys
   print (show ("gen_html",dir,length f,length is,length ys,map length ms))

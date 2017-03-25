@@ -1,5 +1,6 @@
 clean:
 	rm -Rf dist
+	(cd cmd ; make clean)
 
 push-sp:
 	darcs push -a rd@slavepianos.org:sw/hcamera
