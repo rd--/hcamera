@@ -29,9 +29,22 @@ data Img = Img {file_name :: FilePath
                ,exif_data :: [E.Exif_Tag]}
            deriving (Show)
 
+exif_of_interest :: [E.Exif_Key]
+exif_of_interest =
+    ["Model"
+    ,"DateTime","DateTimeOriginal"
+    ,"ExposureTime","ExposureIndex","ExposureBiasValue"
+    ,"FNumber","FocalLength"
+    ,"ShutterSpeedValue"
+    ,"ApertureValue","MaxApertureValue"
+    ,"ISOSpeedRatings"
+    ,"SubjectDistance"
+    ,"MeteringMode"
+    ]
+
 mk_exif :: [E.Exif_Tag] -> X.Content
 mk_exif xs =
-    let ys = filter (\(k,_) -> k `elem` E.exif_attr) xs
+    let ys = filter (\(k,_) -> k `elem` exif_of_interest) xs
         f (k,v) = H.li [] [H.cdata k, H.cdata ": ", H.cdata v]
     in H.ul [H.class' "exif"] (map f ys)
 
