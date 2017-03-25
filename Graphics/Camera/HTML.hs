@@ -3,7 +3,7 @@ module Graphics.Camera.HTML where
 import Data.Function {- base -}
 import Data.List {- base -}
 import qualified Data.Time as T {- time -}
-import System.Directory {- directory -}
+import qualified System.Directory as D {- directory -}
 import System.FilePath {- filepath -}
 
 import qualified Text.XML.Light as X {- xml -}
@@ -24,27 +24,27 @@ eq_by f p q = f p == f q
 
 -- * Util/Time
 
-day_year :: T.Day -> Int
-day_year = fromIntegral . (\(y,_,_) -> y) . T.toGregorian
+day_to_year :: T.Day -> Int
+day_to_year = fromIntegral . (\(y,_,_) -> y) . T.toGregorian
 
-day_month :: T.Day -> Int
-day_month = fromIntegral . (\(_,d,_) -> d) . T.toGregorian
+day_to_month :: T.Day -> Int
+day_to_month = fromIntegral . (\(_,d,_) -> d) . T.toGregorian
 
 -- * Img
 
-data Img = Img {file_name :: FilePath
-               ,time :: T.UTCTime
-               ,exif_data :: [E.Exif_Tag]}
+data Img = Img {img_file_name :: FilePath
+               ,img_time :: T.UTCTime
+               ,img_exif_data :: [E.Exif_Tag]}
            deriving (Show)
 
-date :: Img -> T.Day
-date = T.utctDay . time
+img_date :: Img -> T.Day
+img_date = T.utctDay . img_time
 
 by_year :: [Img] -> [[Img]]
-by_year is = groupBy (eq_by (day_year . date)) is
+by_year = groupBy (eq_by (day_to_year . img_date))
 
 by_month :: [Img] -> [[Img]]
-by_month is = groupBy (eq_by (day_month . date)) is
+by_month = groupBy (eq_by (day_to_month . img_date))
 
 -- * HTML
 
@@ -112,17 +112,17 @@ write_page :: FilePath -> [Img] -> IO ()
 write_page dir img =
     case img of
       [] -> undefined
-      i:is -> do let ts = date i
-                     y = day_year ts
-                     m = day_month ts
-                     d = dir </> "html" </> show y </> show m
-                 createDirectoryIfMissing True d
+      i:is -> do let ts = img_date i
+                     y = day_to_year ts
+                     m = day_to_month ts
+                     d = dir </> "html" </> show y </> show m -- m = two digits...
+                 D.createDirectoryIfMissing True d
                  writeFile (d </> "index.html") (mk_page (i:is))
 
 mk_index :: [Img] -> String
 mk_index xs =
-    let ds = map date xs
-        us = collate (map (\d -> (day_year d, day_month d)) ds)
+    let ds = map img_date xs
+        us = collate (map (\d -> (day_to_year d, day_to_month d)) ds)
         hr ((y,m),_) = show y </> show m </> "index.html"
         ft ((y,m),_) = T.formatTime
                        T.defaultTimeLocale
@@ -137,7 +137,7 @@ mk_index xs =
              [H.div
               [H.class' "main"]
               [H.ul [] (map ln us)]]
-    in H.renderXHTML H.xhtml_1_0_strict e
+    in H.renderHTML5 e
 
 write_index :: FilePath -> [Img] -> IO ()
 write_index dir xs = writeFile (dir </> "html/index.html") (mk_index xs)
@@ -147,7 +147,7 @@ gen_html dir f = do
   print ("reading tags",dir,length f)
   x <- mapM E.exif_read_all_tags f
   let t = map E.exif_time_def x
-      is = sortBy (compare `on` time) (zipWith3 Img f t x)
+      is = sortBy (compare `on` img_time) (zipWith3 Img f t x)
       ys = by_year is
       ms = concatMap by_month ys
   print (show ("gen_html",dir,length f,length is,length ys,map length ms))
