@@ -25,6 +25,8 @@ timezone_to_seconds = (* 60) . fromIntegral . T.timeZoneMinutes
 --
 -- > z <- T.getCurrentTimeZone
 -- > T.timeZoneName z == "AEDT"
+-- > T.timeZoneMinutes z == 660
+-- > T.timeZoneOffsetString z == "+1100"
 -- > timezone_to_seconds z == 39600
 -- > timezone_to_nominaldifftime z == 39600
 timezone_to_nominaldifftime :: T.TimeZone -> T.NominalDiffTime
@@ -47,9 +49,6 @@ time_shift_by_current_timezone :: T.UTCTime -> IO T.UTCTime
 time_shift_by_current_timezone t = do
   z <- T.getCurrentTimeZone
   return (time_shift_by_timezone z t)
-
--- > T.timeZoneMinutes z == 660
--- > T.timeZoneOffsetString z == "+1100"
 
 -- | Format string for Exif date, @2008:02:23 12:10:46@.
 exif_date_fmt :: String
@@ -88,7 +87,7 @@ exif_datetime_seq e =
     exif_filter e ["DateTime"
                   ,"DateTimeOriginal"
                   ,"DateTimeDigitized"
-                  ,"CreateDate" -- exiftool, MP4
+                  ,"CreateDate" -- exiftool, MP4 (use globalTimeShift to make local)
                   ]
 
 exif_datetime :: [Exif_Tag] -> Maybe Exif_Tag

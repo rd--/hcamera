@@ -23,7 +23,8 @@ rename_file_if_exists p q = do
   x <- D.doesFileExist p
   when x (D.renameFile p q)
 
--- | If file has exif @datetime@ data rename file.
+-- | If file has exif @datetime@ data rename file.  If there is an
+-- associated @meta@ file rename it as well.
 rename :: T.TimeZone -> FilePath -> IO ()
 rename z fn = do
   e <- E.exif_read_all_tags fn

@@ -3,23 +3,11 @@ hcamera
 
 Trivial EXIF image file tool.
 
-Given a directory structure:
+To generate metadata files for MP4 videos type:
 
-----   ----------------------------
-css    `hcamera.css`
-jpeg   source image files
-jpeg/n image reductions (generated)
-html   indices (generated)
-----   ----------------------------
-
-- `hcamera rename jpeg` will rename all EXIF files at `jpeg` that are
-   not already named `YYYY-MM-DD-HH-MM-SS`, ie. `2012-08-10-19-58-28`.
-
-- `hcamera resize jpeg` will make reductions of all images at `jpeg`
-   that do not already have reductions at `jpeg/n`.
-
-- `hcamera gen-html jpeg` will generate an index at `html/index.html`
-   with sub-indices for each calendar month having images at `jpeg`.
+~~~~
+exiftool -globalTimeShift +11:00 -S -w meta *.mp4
+~~~~
 
 Indirectly requires libexif:
 
