@@ -4,27 +4,69 @@ module Graphics.Camera.Exif where
 import Control.Monad {- base -}
 import Data.Maybe {- base -}
 import Data.List.Split {- split -}
+import qualified Data.Time as T {- time -}
 import System.Directory {- directory -}
 import System.FilePath {- filepath -}
-import qualified Data.Time as T {- time -}
 
 import qualified Graphics.Exif as E {- exif -}
 
 -- * Date/Time
 
+difftime_to_nominaldifftime :: T.DiffTime -> T.NominalDiffTime
+difftime_to_nominaldifftime = realToFrac
+
+seconds_to_nominaldifftime :: Integer -> T.NominalDiffTime
+seconds_to_nominaldifftime = difftime_to_nominaldifftime . T.secondsToDiffTime
+
+timezone_to_seconds :: Integral i => T.TimeZone -> i
+timezone_to_seconds = (* 60) . fromIntegral . T.timeZoneMinutes
+
+-- | 'T.Timezone' as 'T.NominalDiffTime'.
+--
+-- > z <- T.getCurrentTimeZone
+-- > T.timeZoneName z == "AEDT"
+-- > timezone_to_seconds z == 39600
+-- > timezone_to_nominaldifftime z == 39600
+timezone_to_nominaldifftime :: T.TimeZone -> T.NominalDiffTime
+timezone_to_nominaldifftime = seconds_to_nominaldifftime . timezone_to_seconds
+
+-- | Parse 'T.TimeZone', or error.  Names recognised are those in RFC-822.
+--
+-- > timezone_to_seconds (timezone_parse "UT") == 0
+-- > timezone_to_seconds (timezone_parse "EST") == -18000
+-- > timezone_to_seconds (timezone_parse "+11:00") == 39600
+timezone_parse :: String -> T.TimeZone
+timezone_parse = T.parseTimeOrError True T.defaultTimeLocale "%Z"
+
+time_shift_by_timezone :: T.TimeZone -> T.UTCTime -> T.UTCTime
+time_shift_by_timezone z t = T.addUTCTime (timezone_to_nominaldifftime z) t
+
+-- > let Just t = exif_parse_time "2017:02:05 09:43:31"
+-- > time_shift_by_current_timezone t
+time_shift_by_current_timezone :: T.UTCTime -> IO T.UTCTime
+time_shift_by_current_timezone t = do
+  z <- T.getCurrentTimeZone
+  return (time_shift_by_timezone z t)
+
+-- > T.timeZoneMinutes z == 660
+-- > T.timeZoneOffsetString z == "+1100"
+
 -- | Format string for Exif date, @2008:02:23 12:10:46@.
 exif_date_fmt :: String
 exif_date_fmt = "%Y:%m:%d %H:%M:%S"
 
--- | Parse Exif time.
+-- | Parse Exif time, there is no 'T.TimeZone' information in the string.
 --
--- > exif_parse_time "2008:02:23 12:10:46"
-exif_parse_time :: String -> Maybe T.UTCTime
-exif_parse_time = T.parseTimeM True T.defaultTimeLocale exif_date_fmt
+-- > exif_parse_time T.utc "2008:02:23 12:10:46"
+exif_parse_time :: T.TimeZone -> String -> Maybe T.UTCTime
+exif_parse_time z =
+    let f = time_shift_by_timezone z
+    in fmap f . T.parseTimeM True T.defaultTimeLocale exif_date_fmt
 
 -- | Format @UTCTime@ in manner suitable for use as a filename.
 --
--- > fmap exif_format_time (exif_parse_time "2008:02:23 12:10:46") == Just "2008-02-23-12-10-46"
+-- > let t = exif_parse_time T.utc "2008:02:23 12:10:46"
+-- > fmap exif_format_time t == Just "2008-02-23-12-10-46"
 exif_format_time :: T.UTCTime -> String
 exif_format_time = T.formatTime T.defaultTimeLocale "%Y-%m-%d-%H-%M-%S"
 
@@ -55,16 +97,16 @@ exif_datetime e =
       t0:_ -> Just t0
       _ -> Nothing
 
-exif_time :: [Exif_Tag] -> Maybe T.UTCTime
-exif_time = join . fmap (exif_parse_time . snd) . exif_datetime
+exif_time :: T.TimeZone -> [Exif_Tag] -> Maybe T.UTCTime
+exif_time z = join . fmap (exif_parse_time z . snd) . exif_datetime
 
-exif_time_def :: [Exif_Tag] -> T.UTCTime
-exif_time_def =
+exif_time_def :: T.TimeZone -> [Exif_Tag] -> T.UTCTime
+exif_time_def z =
     let t = T.UTCTime (T.fromGregorian 1970 0 0) 0
-    in fromMaybe t . exif_time
+    in fromMaybe t . exif_time z
 
-exif_day_def :: [Exif_Tag] -> T.Day
-exif_day_def = T.utctDay . exif_time_def
+exif_day_def :: T.TimeZone -> [Exif_Tag] -> T.Day
+exif_day_def z = T.utctDay . exif_time_def z
 
 -- * libexif
 
@@ -75,6 +117,17 @@ libexif_read_all_tags fb = do
   E.allTags x
 
 -- * exiftool
+
+type CMD = (String,[String])
+
+meta_cmd :: String -> FilePath -> CMD
+meta_cmd tz fn = ("exiftool",["-globalTimeShift",tz,"-S",fn,"-w","meta"])
+
+-- > cmd_to_sys (meta_cmd "+11:00" "VID_20170205_204319.mp4")
+cmd_to_sys :: CMD -> String
+cmd_to_sys (cmd,arg) = unwords (cmd : arg)
+
+-- > P.rawSystem
 
 -- | Meta-data entries are "key: value" strings.
 meta_parse_entry :: String -> Exif_Tag

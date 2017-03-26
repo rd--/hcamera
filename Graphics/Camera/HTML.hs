@@ -142,11 +142,11 @@ mk_index xs =
 write_index :: FilePath -> [Img] -> IO ()
 write_index dir xs = writeFile (dir </> "html/index.html") (mk_index xs)
 
-gen_html :: FilePath -> [FilePath] -> IO ()
-gen_html dir f = do
+gen_html :: T.TimeZone -> FilePath -> [FilePath] -> IO ()
+gen_html z dir f = do
   print ("reading tags",dir,length f)
   x <- mapM E.exif_read_all_tags f
-  let t = map E.exif_time_def x
+  let t = map (E.exif_time_def z) x
       is = sortBy (compare `on` img_time) (zipWith3 Img f t x)
       ys = by_year is
       ms = concatMap by_month ys
