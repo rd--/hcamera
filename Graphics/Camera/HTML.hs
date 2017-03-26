@@ -30,6 +30,20 @@ day_to_year = fromIntegral . (\(y,_,_) -> y) . T.toGregorian
 day_to_month :: T.Day -> Int
 day_to_month = fromIntegral . (\(_,d,_) -> d) . T.toGregorian
 
+-- * Util/HTML
+
+html_en :: [X.Content] -> X.Element
+html_en = H.html [H.lang "en"]
+
+body_c :: String -> [X.Content] -> X.Content
+body_c c = H.body [H.class' c]
+
+div_c :: String -> [X.Content] -> X.Content
+div_c c = H.div [H.class' c]
+
+ul_c :: String -> [X.Content] -> X.Content
+ul_c c = H.ul [H.class' c]
+
 -- * Img
 
 data Img = Img {img_file_name :: FilePath
@@ -40,6 +54,9 @@ data Img = Img {img_file_name :: FilePath
 img_date :: Img -> T.Day
 img_date = T.utctDay . img_time
 
+img_type :: Img -> String
+img_type = takeExtension . img_file_name
+
 by_year :: [Img] -> [[Img]]
 by_year = groupBy (eq_by (day_to_year . img_date))
 
@@ -47,16 +64,6 @@ by_month :: [Img] -> [[Img]]
 by_month = groupBy (eq_by (day_to_month . img_date))
 
 -- * HTML
-
-std_html_attr :: [X.Attr]
-std_html_attr = [H.lang "en" ]
-
-std_meta :: String -> String -> [X.Content]
-std_meta d s =
-    [H.title [] [H.cdata ("hcamera: " ++ d)]
-    ,H.meta_description d
-    ,H.meta_author "hcamera"
-    ,H.link_css "all" s]
 
 exif_of_interest :: [E.Exif_Key]
 exif_of_interest =
@@ -85,28 +92,26 @@ mk_exif xs =
     let oi = exif_of_interest ++ mp4_of_interest
         ys = filter (\(k,_) -> k `elem` oi) xs
         f (k,v) = H.li [] [H.cdata k, H.cdata ": ", H.cdata v]
-    in H.ul [H.class' "exif"] (map f ys)
+    in ul_c "exif" (map f ys)
 
 up :: FilePath -> FilePath
 up f = if isAbsolute f then f else "../../../" </> f
 
 mk_node :: Img -> X.Content
-mk_node (Img f _ xs) =
-    H.div
-         [H.class' "node"]
-         [H.div [H.class' "image"] [H.a [H.href (up f)] [H.img [H.src (up (R.revised_name f))]]]
-         ,H.div [H.class' "text"] [mk_exif xs]]
+mk_node (Img fn _ xs) =
+    let fn' = replaceExtension (R.revised_name fn) "jpg"
+    in div_c "node"
+        [div_c "image" [H.a [H.href (up fn)] [H.img [H.src (up fn')]]]
+        ,div_c "text" [mk_exif xs]]
+
+css_fn :: FilePath
+css_fn = "/home/rohan/sw/hcamera/data/css/hcamera.css"
 
 mk_page :: [Img] -> String
 mk_page xs =
-    let e = H.html std_html_attr [hd, bd]
-        hd = H.head [] (std_meta "hcamera" (up "css/hcamera.css"))
-        bd = H.body
-             [H.class' "hcamera"]
-             [H.div
-              [H.class' "main"]
-              (map mk_node xs)]
-    in H.renderHTML5 e
+    let hd = H.head [] [H.link_css "all" css_fn]
+        bd = body_c "hcamera" [div_c "main" (map mk_node xs)]
+    in H.renderHTML5 (html_en [hd, bd])
 
 write_page :: FilePath -> [Img] -> IO ()
 write_page dir img =
@@ -130,14 +135,9 @@ mk_index xs =
                        (T.fromGregorian (fromIntegral y) m 0)
         nm (_,n) = " (" ++ show n ++ ")"
         ln d = H.li [] [H.a [H.href (hr d)] [H.cdata (ft d ++ nm d)]]
-        e = H.html std_html_attr [hd, bd]
-        hd = H.head [] (std_meta "hcamera" "../css/hcamera.css")
-        bd = H.body
-             [H.class' "hcamera"]
-             [H.div
-              [H.class' "main"]
-              [H.ul [] (map ln us)]]
-    in H.renderHTML5 e
+        hd = H.head [] [H.link_css "all" css_fn]
+        bd = body_c "hcamera" [div_c "main" [H.ul [] (map ln us)]]
+    in H.renderHTML5 (html_en [hd, bd])
 
 write_index :: FilePath -> [Img] -> IO ()
 write_index dir xs = writeFile (dir </> "html/index.html") (mk_index xs)

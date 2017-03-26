@@ -126,8 +126,6 @@ meta_cmd tz fn = ("exiftool",["-globalTimeShift",tz,"-S",fn,"-w","meta"])
 cmd_to_sys :: CMD -> String
 cmd_to_sys (cmd,arg) = unwords (cmd : arg)
 
--- > P.rawSystem
-
 -- | Meta-data entries are "key: value" strings.
 meta_parse_entry :: String -> Exif_Tag
 meta_parse_entry s =
