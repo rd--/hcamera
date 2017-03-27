@@ -1,4 +1,3 @@
-import qualified Data.Time as T {- time -}
 import System.Environment {- base -}
 
 import qualified Graphics.Camera.Exif as Exif
@@ -27,10 +26,10 @@ exif_print :: [FilePath] -> IO ()
 exif_print = mapM_ (\fn -> Exif.exif_read_all_tags fn >>= print)
 
 html_gen :: [FilePath] -> IO ()
-html_gen fn_set = HTML.gen_html T.utc "." fn_set
+html_gen fn_set = HTML.gen_html 200 fn_set
 
 exif_rename :: [FilePath] -> IO ()
-exif_rename = mapM_ (Rename.rename T.utc)
+exif_rename = mapM_ Rename.rename
 
 img_resize :: [FilePath] -> IO ()
 img_resize = mapM_ (Resize.resize (Right 200))

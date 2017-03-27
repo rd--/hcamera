@@ -30,6 +30,7 @@ Library
                    Graphics.Camera.HTML
                    Graphics.Camera.Rename
                    Graphics.Camera.Resize
+                   Graphics.Camera.Time
 
 Source-Repository  head
   Type:            darcs

@@ -97,32 +97,35 @@ mk_exif xs =
 up :: FilePath -> FilePath
 up f = if isAbsolute f then f else "../../../" </> f
 
-mk_node :: Img -> X.Content
-mk_node (Img fn _ xs) =
-    let fn' = replaceExtension (R.revised_name fn) "jpg"
+mk_node :: Int -> Img -> X.Content
+mk_node n (Img fn _ xs) =
+    let r_fn = R.revised_name n fn
+        r_fn' = case takeExtension fn of
+                  ".mp4" -> "p" </> replaceExtension r_fn "jpg"
+                  _ -> r_fn
     in div_c "node"
-        [div_c "image" [H.a [H.href (up fn)] [H.img [H.src (up fn')]]]
+        [div_c "image" [H.a [H.href (up fn)] [H.img [H.src (up r_fn')]]]
         ,div_c "text" [mk_exif xs]]
 
 css_fn :: FilePath
 css_fn = "/home/rohan/sw/hcamera/data/css/hcamera.css"
 
-mk_page :: [Img] -> String
-mk_page xs =
+mk_page :: Int -> [Img] -> String
+mk_page n xs =
     let hd = H.head [] [H.link_css "all" css_fn]
-        bd = body_c "hcamera" [div_c "main" (map mk_node xs)]
+        bd = body_c "hcamera" [div_c "main" (map (mk_node n) xs)]
     in H.renderHTML5 (html_en [hd, bd])
 
-write_page :: FilePath -> [Img] -> IO ()
-write_page dir img =
+write_page :: Int -> [Img] -> IO ()
+write_page n img =
     case img of
       [] -> undefined
       i:is -> do let ts = img_date i
                      y = day_to_year ts
                      m = day_to_month ts
-                     d = dir </> "html" </> show y </> show m -- m = two digits...
+                     d = "html" </> show y </> show m -- m = two digits...
                  D.createDirectoryIfMissing True d
-                 writeFile (d </> "index.html") (mk_page (i:is))
+                 writeFile (d </> "index.html") (mk_page n (i:is))
 
 mk_index :: [Img] -> String
 mk_index xs =
@@ -139,17 +142,20 @@ mk_index xs =
         bd = body_c "hcamera" [div_c "main" [H.ul [] (map ln us)]]
     in H.renderHTML5 (html_en [hd, bd])
 
-write_index :: FilePath -> [Img] -> IO ()
-write_index dir xs = writeFile (dir </> "html/index.html") (mk_index xs)
+write_index :: [Img] -> IO ()
+write_index xs = writeFile ("html/index.html") (mk_index xs)
 
-gen_html :: T.TimeZone -> FilePath -> [FilePath] -> IO ()
-gen_html z dir f = do
-  print ("reading tags",dir,length f)
-  x <- mapM E.exif_read_all_tags f
+gen_html_tz :: T.TimeZone -> Int -> [FilePath] -> IO ()
+gen_html_tz z n fn_seq = do
+  print ("reading tags",length fn_seq)
+  x <- mapM E.exif_read_all_tags fn_seq
   let t = map (E.exif_time_def z) x
-      is = sortBy (compare `on` img_time) (zipWith3 Img f t x)
+      is = sortBy (compare `on` img_time) (zipWith3 Img fn_seq t x)
       ys = by_year is
       ms = concatMap by_month ys
-  print (show ("gen_html",dir,length f,length is,length ys,map length ms))
-  write_index dir is
-  mapM_ (write_page dir) ms
+  print (show ("gen_html",length fn_seq,length is,length ys,map length ms))
+  write_index is
+  mapM_ (write_page n) ms
+
+gen_html :: Int -> [FilePath] -> IO ()
+gen_html = gen_html_tz T.utc
