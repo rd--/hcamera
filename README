@@ -9,6 +9,12 @@ To generate metadata files for MP4 videos type:
 exiftool -globalTimeShift +11:00 -S -w meta *.mp4
 ~~~~
 
+To generate preview image for MP4 video type:
+
+~~~~
+avconv -i x.mp4 -f image2 -vframes 1 p/x.jpg
+~~~~
+
 Indirectly requires libexif:
 
     sudo apt-get install libexif-dev
