@@ -6,8 +6,6 @@ import qualified Data.Time as T {- time -}
 import qualified System.Directory as D {- directory -}
 import System.FilePath {- filepath -}
 
-import qualified Text.XML.Light as X {- xml -}
-
 import qualified Text.HTML.Minus as H {- html-minimalist -}
 
 import qualified Graphics.Camera.Exif as E
@@ -32,17 +30,17 @@ day_to_month = fromIntegral . (\(_,d,_) -> d) . T.toGregorian
 
 -- * Util/HTML
 
-html_en :: [X.Content] -> X.Element
+html_en :: [H.Content] -> H.Element
 html_en = H.html [H.lang "en"]
 
-body_c :: String -> [X.Content] -> X.Content
-body_c c = H.body [H.class' c]
+body_c :: String -> [H.Content] -> H.Content
+body_c c = H.body [H.class_attr c]
 
-div_c :: String -> [X.Content] -> X.Content
-div_c c = H.div [H.class' c]
+div_c :: String -> [H.Content] -> H.Content
+div_c c = H.div [H.class_attr c]
 
-ul_c :: String -> [X.Content] -> X.Content
-ul_c c = H.ul [H.class' c]
+ul_c :: String -> [H.Content] -> H.Content
+ul_c c = H.ul [H.class_attr c]
 
 -- * Img
 
@@ -87,7 +85,7 @@ mp4_of_interest =
     ,"Rotation"
     ,"MIMEType"]
 
-mk_exif :: [E.Exif_Tag] -> X.Content
+mk_exif :: [E.Exif_Tag] -> H.Content
 mk_exif xs =
     let oi = exif_of_interest ++ mp4_of_interest
         ys = filter (\(k,_) -> k `elem` oi) xs
@@ -97,7 +95,7 @@ mk_exif xs =
 up :: FilePath -> FilePath
 up f = if isAbsolute f then f else "../../../" </> f
 
-mk_node :: Int -> Img -> X.Content
+mk_node :: Int -> Img -> H.Content
 mk_node n (Img fn _ xs) =
     let r_fn = R.revised_name n fn
         r_fn' = case takeExtension fn of

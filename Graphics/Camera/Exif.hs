@@ -105,6 +105,10 @@ meta_read_all_tags fn = do
 -- * IO
 
 -- | Prefer meta data in file, if it exists.
+--
+-- > let mp4_fn = "/home/rohan/disk/saikaku/image/rd/camera/mp4/VID_20170412_173404.mp4"
+-- > t <- exif_read_all_tags mp4_fn
+-- > exif_time T.utc t
 exif_read_all_tags :: FilePath -> IO [Exif_Tag]
 exif_read_all_tags fn = do
   let meta_fn = dropExtension fn <.> "meta"
