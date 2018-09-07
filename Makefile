@@ -2,8 +2,8 @@ clean:
 	rm -Rf dist
 	(cd cmd ; make clean)
 
-push-sp:
-	darcs push -a rd@slavepianos.org:sw/hcamera
+push-rd:
+	darcs push -a rd@rohandrape.net:sw/hcamera
 
-pull-sp:
-	darcs pull -a http://rd.slavepianos.org/sw/hcamera
+pull-rd:
+	darcs pull -a http://rohandrape.net/sw/hcamera

@@ -1,15 +1,15 @@
 Name:              hcamera
-Version:           0.16
+Version:           0.17
 Synopsis:          hcamera
 Description:       hcamera
 License:           GPL
 Category:          Graphics
-Copyright:         (c) Rohan Drape, 2008-2017
+Copyright:         (c) Rohan Drape, 2008-2018
 Author:            Rohan Drape
-Maintainer:        rd@slavepianos.org
+Maintainer:        rd@rohandrape.net
 Stability:         Experimental
-Homepage:          http://rd.slavepianos.org/t/hcamera
-Tested-With:       GHC == 8.0.1
+Homepage:          http://rohandrape.net/t/hcamera
+Tested-With:       GHC == 8.2.2
 Build-Type:        Simple
 Cabal-Version:     >= 1.8
 
@@ -20,7 +20,7 @@ Library
                    directory,
                    exif,
                    filepath,
-                   html-minus == 0.16.*,
+                   html-minus == 0.17.*,
                    process,
                    split,
                    time,
@@ -34,7 +34,7 @@ Library
 
 Source-Repository  head
   Type:            darcs
-  Location:        http://rd.slavepianos.org/sw/hcamera
+  Location:        http://rohandrape.net/sw/hcamera
 
 -- Local Variables:
 -- truncate-lines:t
