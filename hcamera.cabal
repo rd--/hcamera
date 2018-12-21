@@ -1,5 +1,5 @@
 Name:              hcamera
-Version:           0.17
+Version:           0.18
 Synopsis:          hcamera
 Description:       hcamera
 License:           GPL
@@ -9,18 +9,18 @@ Author:            Rohan Drape
 Maintainer:        rd@rohandrape.net
 Stability:         Experimental
 Homepage:          http://rohandrape.net/t/hcamera
-Tested-With:       GHC == 8.2.2
+Tested-With:       GHC == 8.4.3
 Build-Type:        Simple
 Cabal-Version:     >= 1.8
 
 Data-files:        README
 
 Library
-  Build-Depends:   base >= 4.8,
+  Build-Depends:   base >= 4.8 && < 5,
                    directory,
                    exif,
                    filepath,
-                   html-minus == 0.17.*,
+                   html-minus == 0.18.*,
                    process,
                    split,
                    time,
