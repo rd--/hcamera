@@ -7,3 +7,6 @@ push-rd:
 
 pull-rd:
 	darcs pull -a http://rohandrape.net/sw/hcamera
+
+install-dep:
+	sudo apt-get install libexif-dev
