@@ -2,17 +2,18 @@
 module Graphics.Camera.Exif where
 
 import Control.Monad {- base -}
+import Data.Char {- base -}
 import Data.Bifunctor {- base -}
 import Data.Maybe {- base -}
+import System.Directory {- directory -}
 import System.FilePath {- filepath -}
 
-import Data.List.Split {- split -}
-import qualified Data.Time as T {- time -}
-import qualified System.Directory as D {- directory -}
+import qualified Data.List.Split as Split {- split -}
+import qualified Data.Time as Time {- time -}
 
 import qualified Data.Map.Strict as Map {- containers -}
 
-import qualified Graphics.HsExif as E {- hsexif -}
+import qualified Graphics.HsExif as Exif {- hsexif -}
 
 import Graphics.Camera.Time {- hcamera -}
 
@@ -20,32 +21,42 @@ import Graphics.Camera.Time {- hcamera -}
 exif_date_fmt :: String
 exif_date_fmt = "%Y:%m:%d %H:%M:%S"
 
--- | Parse Exif time, there is no 'T.TimeZone' information in the string.
+-- | Parse Exif time, there is no 'Time.TimeZone' information in the string.
 --
--- > exif_parse_time T.utc "2008:02:23 12:10:46"
-exif_parse_time :: T.TimeZone -> String -> Maybe T.UTCTime
+-- > exif_parse_time Time.utc "2008:02:23 12:10:46"
+exif_parse_time :: Time.TimeZone -> String -> Maybe Time.UTCTime
 exif_parse_time z =
     let f = time_shift_by_timezone z
-    in fmap f . T.parseTimeM True T.defaultTimeLocale exif_date_fmt
+    in fmap f . Time.parseTimeM True Time.defaultTimeLocale exif_date_fmt
 
 -- | Format @UTCTime@ in manner suitable for use as a filename.
 --
--- > let t = exif_parse_time T.utc "2008:02:23 12:10:46"
+-- > let t = exif_parse_time Time.utc "2008:02:23 12:10:46"
 -- > fmap exif_format_time t == Just "2008-02-23-12-10-46"
-exif_format_time :: T.UTCTime -> String
-exif_format_time = T.formatTime T.defaultTimeLocale "%Y-%m-%d-%H-%M-%S"
+exif_format_time :: Time.UTCTime -> String
+exif_format_time = Time.formatTime Time.defaultTimeLocale "%Y-%m-%d-%H-%M-%S"
 
 -- * Exif/Type
 
+-- | Exif identifiers are integers.
+type Exif_Id = Int
+
+-- | String keys, standard names for identifiers, comparison should be case insensitive.
 type Exif_Key = String
 
+-- | String values.
 type Exif_Value = String
 
 -- | (key,value) pair.
 type Exif_Tag = (Exif_Key,Exif_Value)
 
+-- | Filter tags given set of keys.
 exif_filter :: [Exif_Tag] -> [Exif_Key] -> [Exif_Tag]
-exif_filter e t = filter (flip elem t . fst) e
+exif_filter e t =
+  let downCase = map toLower
+      tlc = map downCase t
+      f (k,_) = downCase k `elem` tlc
+  in filter f e
 
 -- | Time tags, in sequence of preferred form.
 exif_datetime_seq :: [Exif_Tag] -> [Exif_Tag]
@@ -62,23 +73,23 @@ exif_datetime e =
       t0:_ -> Just t0
       _ -> Nothing
 
-exif_time :: T.TimeZone -> [Exif_Tag] -> Maybe T.UTCTime
+exif_time :: Time.TimeZone -> [Exif_Tag] -> Maybe Time.UTCTime
 exif_time z = join . fmap (exif_parse_time z . snd) . exif_datetime
 
-exif_time_def :: T.TimeZone -> [Exif_Tag] -> T.UTCTime
+exif_time_def :: Time.TimeZone -> [Exif_Tag] -> Time.UTCTime
 exif_time_def z =
-    let t = T.UTCTime (T.fromGregorian 1970 0 0) 0
+    let t = Time.UTCTime (Time.fromGregorian 1970 0 0) 0
     in fromMaybe t . exif_time z
 
-exif_day_def :: T.TimeZone -> [Exif_Tag] -> T.Day
-exif_day_def z = T.utctDay . exif_time_def z
+exif_day_def :: Time.TimeZone -> [Exif_Tag] -> Time.Day
+exif_day_def z = Time.utctDay . exif_time_def z
 
 -- * libexif
 
--- | Read 'Exif_Tag' set from image file using libexif.
+-- | Read 'Exif_Tag' set from image file using hsexif.
 libexif_read_all_tags :: FilePath -> IO [Exif_Tag]
 libexif_read_all_tags fn = do
-  result <- E.parseFileExif fn
+  result <- Exif.parseFileExif fn
   case result of
     Left err -> error (concat ["libexif_read_all_tags: ", fn, ": ", err])
     Right tags -> return (map (bimap show show) (Map.toList tags))
@@ -97,7 +108,7 @@ cmd_to_sys (cmd,arg) = unwords (cmd : arg)
 -- | Meta-data entries are "key: value" strings.
 meta_parse_entry :: String -> Exif_Tag
 meta_parse_entry s =
-    case splitOn ": " s of
+    case Split.splitOn ": " s of
       [k,v] -> (k,v)
       _ -> error "meta_parse_entry"
 
@@ -113,16 +124,17 @@ meta_read_all_tags fn = do
 --
 -- > let mp4_fn = "/home/rohan/disk/saikaku/image/rd/camera/mp4/VID_20170412_173404.mp4"
 -- > t <- exif_read_all_tags mp4_fn
--- > exif_time T.utc t
+-- > exif_time Time.utc t
 exif_read_all_tags :: FilePath -> IO [Exif_Tag]
 exif_read_all_tags fn = do
   let meta_fn = dropExtension fn <.> "meta"
-  meta_x <- D.doesFileExist meta_fn
+  meta_x <- doesFileExist meta_fn
   if meta_x then meta_read_all_tags meta_fn else libexif_read_all_tags fn
 
 -- * TAGS
 
-exif_tag_table :: [(Int,Exif_Key)]
+-- | Table mapping Exif_Id to Exif_Key
+exif_tag_table :: [(Exif_Id,Exif_Key)]
 exif_tag_table =
     [(0x0001,"InteropIndex")
     ,(0x0002,"InteropVersion")
