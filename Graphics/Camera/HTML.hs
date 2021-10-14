@@ -33,15 +33,6 @@ day_to_month = fromIntegral . (\(_,d,_) -> d) . T.toGregorian
 html_en :: [H.Content] -> H.Element
 html_en = H.html [H.lang "en"]
 
-body_c :: String -> [H.Content] -> H.Content
-body_c c = H.body [H.class_attr c]
-
-div_c :: String -> [H.Content] -> H.Content
-div_c c = H.div [H.class_attr c]
-
-ul_c :: String -> [H.Content] -> H.Content
-ul_c c = H.ul [H.class_attr c]
-
 -- * Img
 
 data Img = Img {img_file_name :: FilePath
@@ -90,7 +81,7 @@ mk_exif xs =
     let oi = exif_of_interest ++ mp4_of_interest
         ys = filter (\(k,_) -> k `elem` oi) xs
         f (k,v) = H.li [] [H.cdata k, H.cdata ": ", H.cdata v]
-    in ul_c "exif" (map f ys)
+    in H.ul_c "exif" (map f ys)
 
 up :: FilePath -> FilePath
 up f = if isAbsolute f then f else "../../../" </> f
@@ -101,9 +92,9 @@ mk_node n (Img fn _ xs) =
         r_fn' = case takeExtension fn of
                   ".mp4" -> "p" </> replaceExtension r_fn "jpg"
                   _ -> r_fn
-    in div_c "node"
-        [div_c "image" [H.a [H.href (up fn)] [H.img [H.src (up r_fn')]]]
-        ,div_c "text" [mk_exif xs]]
+    in H.div_c "node"
+        [H.div_c "image" [H.a [H.href (up fn)] [H.img [H.src (up r_fn')]]]
+        ,H.div_c "text" [mk_exif xs]]
 
 css_fn :: FilePath
 css_fn = "/home/rohan/sw/hcamera/data/css/hcamera.css"
@@ -111,7 +102,7 @@ css_fn = "/home/rohan/sw/hcamera/data/css/hcamera.css"
 mk_page :: Int -> [Img] -> String
 mk_page n xs =
     let hd = H.head [] [H.link_css "all" css_fn]
-        bd = body_c "hcamera" [div_c "main" (map (mk_node n) xs)]
+        bd = H.body_c "hcamera" [H.div_c "main" (map (mk_node n) xs)]
     in H.renderHTML5_pp (html_en [hd, bd])
 
 write_page :: Int -> [Img] -> IO ()
@@ -137,7 +128,7 @@ mk_index xs =
         nm (_,n) = " (" ++ show n ++ ")"
         ln d = H.li [] [H.a [H.href (hr d)] [H.cdata (ft d ++ nm d)]]
         hd = H.head [] [H.link_css "all" css_fn]
-        bd = body_c "hcamera" [div_c "main" [H.ul [] (map ln us)]]
+        bd = H.body_c "hcamera" [H.div_c "main" [H.ul [] (map ln us)]]
     in H.renderHTML5_pp (html_en [hd, bd])
 
 write_index :: [Img] -> IO ()

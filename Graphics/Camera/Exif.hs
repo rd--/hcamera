@@ -1,15 +1,18 @@
 -- | EXIF utilities
 module Graphics.Camera.Exif where
 
-import Control.Exception {- base -}
 import Control.Monad {- base -}
+import Data.Bifunctor {- base -}
 import Data.Maybe {- base -}
+import System.FilePath {- filepath -}
+
 import Data.List.Split {- split -}
 import qualified Data.Time as T {- time -}
 import qualified System.Directory as D {- directory -}
-import System.FilePath {- filepath -}
 
-import qualified Graphics.Exif as E {- exif -}
+import qualified Data.Map.Strict as Map {- containers -}
+
+import qualified Graphics.HsExif as E {- hsexif -}
 
 import Graphics.Camera.Time {- hcamera -}
 
@@ -75,8 +78,10 @@ exif_day_def z = T.utctDay . exif_time_def z
 -- | Read 'Exif_Tag' set from image file using libexif.
 libexif_read_all_tags :: FilePath -> IO [Exif_Tag]
 libexif_read_all_tags fn = do
-  x <- onException (E.fromFile fn) (error ("libexif_read_all_tags: " ++ fn))
-  E.allTags x
+  result <- E.parseFileExif fn
+  case result of
+    Left err -> error (concat ["libexif_read_all_tags: ", fn, ": ", err])
+    Right tags -> return (map (bimap show show) (Map.toList tags))
 
 -- * exiftool
 

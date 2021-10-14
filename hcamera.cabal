@@ -1,5 +1,5 @@
 Name:              hcamera
-Version:           0.19
+Version:           0.20
 Synopsis:          hcamera
 Description:       hcamera
 License:           GPL
@@ -17,10 +17,11 @@ Data-files:        README
 
 Library
   Build-Depends:   base >= 4.8 && < 5,
+                   containers,
                    directory,
-                   exif,
                    filepath,
-                   html-minus == 0.19.*,
+                   hsexif,
+                   html-minus == 0.20.*,
                    process,
                    split,
                    time,
