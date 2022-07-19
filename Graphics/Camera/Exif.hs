@@ -1,4 +1,4 @@
--- | EXIF utilities
+-- | Exif utilities
 module Graphics.Camera.Exif where
 
 import Control.Monad {- base -}

@@ -1,7 +1,7 @@
 import System.Environment {- base -}
 
 import qualified Graphics.Camera.Exif as Exif
-import qualified Graphics.Camera.HTML as HTML
+import qualified Graphics.Camera.Html as Html
 import qualified Graphics.Camera.Rename as Rename
 import qualified Graphics.Camera.Resize as Resize
 
@@ -26,7 +26,7 @@ exif_print :: [FilePath] -> IO ()
 exif_print = mapM_ (\fn -> Exif.exif_read_all_tags fn >>= print)
 
 html_gen :: [FilePath] -> IO ()
-html_gen fn_set = HTML.gen_html 200 fn_set
+html_gen fn_set = Html.gen_html 200 fn_set
 
 exif_rename :: [FilePath] -> IO ()
 exif_rename = mapM_ Rename.rename

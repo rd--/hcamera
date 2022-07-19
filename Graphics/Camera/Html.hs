@@ -1,4 +1,4 @@
-module Graphics.Camera.HTML where
+module Graphics.Camera.Html where
 
 import Data.Function {- base -}
 import Data.List {- base -}
@@ -6,7 +6,7 @@ import qualified Data.Time as T {- time -}
 import qualified System.Directory as D {- directory -}
 import System.FilePath {- filepath -}
 
-import qualified Text.HTML.Minus as H {- html-minimalist -}
+import qualified Text.Html.Minus as H {- html-minimalist -}
 
 import qualified Graphics.Camera.Exif as E
 import qualified Graphics.Camera.Resize as R
@@ -28,7 +28,7 @@ day_to_year = fromIntegral . (\(y,_,_) -> y) . T.toGregorian
 day_to_month :: T.Day -> Int
 day_to_month = fromIntegral . (\(_,d,_) -> d) . T.toGregorian
 
--- * Util/HTML
+-- * Util/Html
 
 html_en :: [H.Content] -> H.Element
 html_en = H.html [H.lang "en"]
@@ -52,7 +52,7 @@ by_year = groupBy (eq_by (day_to_year . img_date))
 by_month :: [Img] -> [[Img]]
 by_month = groupBy (eq_by (day_to_month . img_date))
 
--- * HTML
+-- * Html
 
 exif_of_interest :: [E.Exif_Key]
 exif_of_interest =
@@ -103,7 +103,7 @@ mk_page :: Int -> [Img] -> String
 mk_page n xs =
     let hd = H.head [] [H.link_css "all" css_fn]
         bd = H.body_c "hcamera" [H.div_c "main" (map (mk_node n) xs)]
-    in H.renderHTML5_pp (html_en [hd, bd])
+    in H.renderHtml5_pp (html_en [hd, bd])
 
 write_page :: Int -> [Img] -> IO ()
 write_page n img =
@@ -129,7 +129,7 @@ mk_index xs =
         ln d = H.li [] [H.a [H.href (hr d)] [H.cdata (ft d ++ nm d)]]
         hd = H.head [] [H.link_css "all" css_fn]
         bd = H.body_c "hcamera" [H.div_c "main" [H.ul [] (map ln us)]]
-    in H.renderHTML5_pp (html_en [hd, bd])
+    in H.renderHtml5_pp (html_en [hd, bd])
 
 write_index :: [Img] -> IO ()
 write_index xs = writeFile ("html/index.html") (mk_index xs)
