@@ -9,4 +9,5 @@ pull-rd:
 	darcs pull -a http://rohandrape.net/sw/hcamera
 
 install-dep:
-	sudo apt-get install libexif-dev
+	sudo apt install libexif-dev
+	cabal v1-install hsexif

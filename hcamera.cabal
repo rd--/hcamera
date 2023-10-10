@@ -9,7 +9,7 @@ Author:            Rohan Drape
 Maintainer:        rd@rohandrape.net
 Stability:         Experimental
 Homepage:          http://rohandrape.net/t/hcamera
-Tested-With:       GHC == 9.4.3
+Tested-With:       GHC == 9.6.3
 Build-Type:        Simple
 Cabal-Version:     >= 1.8
 
