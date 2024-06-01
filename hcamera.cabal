@@ -4,12 +4,12 @@ Synopsis:          hcamera
 Description:       hcamera
 License:           GPL
 Category:          Graphics
-Copyright:         (c) Rohan Drape, 2008-2023
+Copyright:         (c) Rohan Drape, 2008-2024
 Author:            Rohan Drape
 Maintainer:        rd@rohandrape.net
 Stability:         Experimental
 Homepage:          http://rohandrape.net/t/hcamera
-Tested-With:       GHC == 9.6.3
+Tested-With:       GHC == 9.10.1
 Build-Type:        Simple
 Cabal-Version:     >= 1.8
 

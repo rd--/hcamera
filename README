@@ -23,4 +23,12 @@ The exiftool command is at:
 
    sudo apt-get install libimage-exiftool-perl
 
-rd, 2008-2023
+rd, 2008-2024
+
+* * *
+
+```
+$ make doctest
+Examples: 20  Tried: 20  Errors: 0  Failures: 0
+$
+```
