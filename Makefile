@@ -5,6 +5,9 @@ clean:
 push-rd:
 	darcs push -a rd@rohandrape.net:sw/hcamera
 
+push-all:
+	make push-rd
+
 pull-rd:
 	darcs pull -a http://rohandrape.net/sw/hcamera
 

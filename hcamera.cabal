@@ -26,7 +26,7 @@ Library
                    split,
                    time,
                    xml
-  GHC-Options:     -Wall -fwarn-tabs
+  GHC-Options:     -Wall -Wno-x-partial -Wno-incomplete-uni-patterns
   Exposed-modules: Graphics.Camera.Exif
                    Graphics.Camera.Html
                    Graphics.Camera.Rename
