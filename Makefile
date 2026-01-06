@@ -1,3 +1,6 @@
+install:
+	cabal v1-install --allow-newer
+
 clean:
 	rm -Rf dist
 	(cd cmd ; make clean)

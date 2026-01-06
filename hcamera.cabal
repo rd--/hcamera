@@ -1,15 +1,15 @@
 Name:              hcamera
-Version:           0.22
+Version:           0.23
 Synopsis:          hcamera
 Description:       hcamera
 License:           GPL
 Category:          Graphics
-Copyright:         (c) Rohan Drape, 2008-2025
+Copyright:         (c) Rohan Drape, 2008-2026
 Author:            Rohan Drape
 Maintainer:        rd@rohandrape.net
 Stability:         Experimental
 Homepage:          http://rohandrape.net/t/hcamera
-Tested-With:       GHC == 9.12.2
+Tested-With:       GHC == 9.14.1
 Build-Type:        Simple
 Cabal-Version:     >= 1.8
 
@@ -21,7 +21,7 @@ Library
                    directory,
                    filepath,
                    hsexif,
-                   html-minus == 0.22.*,
+                   html-minus == 0.23.*,
                    process,
                    split,
                    time,
