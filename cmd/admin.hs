@@ -1,4 +1,4 @@
-import System.Environment {- base -}
+import qualified System.Environment {- base -}
 
 import qualified Graphics.Camera.Exif as Exif
 import qualified Graphics.Camera.Html as Html
@@ -49,7 +49,7 @@ usage = putStrLn (unlines help)
 
 main :: IO ()
 main = do
-  a <- getArgs
+  a <- System.Environment.getArgs
   case a of
     "exif-print":fn -> exif_print fn
     "exif-print-libexif":fn -> exif_print_libexif fn

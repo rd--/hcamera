@@ -1,9 +1,11 @@
+-- | Resize
 module Graphics.Camera.Resize where
 
-import Control.Monad {- base -}
-import qualified System.Directory as D {- directory -}
+import qualified Control.Monad {- base -}
+
+import qualified System.Directory {- directory -}
 import System.FilePath {- filepath -}
-import qualified System.Process as P {- process -}
+import qualified System.Process {- process -}
 
 type Command = (String, [String])
 
@@ -44,7 +46,7 @@ resize_dir_nm n fn =
   in normalise (d </> "r" </> show n)
 
 mk_resize_dir :: Int -> FilePath -> IO ()
-mk_resize_dir n = D.createDirectoryIfMissing False . resize_dir_nm n
+mk_resize_dir n = System.Directory.createDirectoryIfMissing False . resize_dir_nm n
 
 {- | Revised name
 
@@ -59,6 +61,6 @@ resize dm f = do
   let sz = either id id dm
       o_fn = revised_name sz f
       (p, a) = resize_cmd dm f o_fn
-  e <- D.doesFileExist o_fn
+  e <- System.Directory.doesFileExist o_fn
   print (if e then ("-", o_fn) else ("+", o_fn))
-  when (not e) (mk_resize_dir sz f >> P.rawSystem p a >> return ())
+  Control.Monad.when (not e) (mk_resize_dir sz f >> System.Process.rawSystem p a >> return ())
